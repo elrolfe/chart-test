@@ -3,13 +3,28 @@
     <head>
         <meta charset="utf-8" />
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <link rel="stylesheet" href="style.css" />
     </head>
     <body>
-        <div style="width: 100%; height: 90vh; margin-bottom: 20px;">
-            <canvas id="sample-totals"></canvas>
+        <div>
+            <input id="CA" type="checkbox"> <label for="CA">California</label><br />
+            <input id="DE" type="checkbox"> <label for="DE">Delaware</label><br />
+            <input id="HI" type="checkbox"> <label for="HI">Hawaii</label><br />
+            <input id="MI" type="checkbox"> <label for="MI">Michigan</label><br />
+            <input id="MT" type="checkbox"> <label for="MT">Montana</label><br />
+            <input id="NE" type="checkbox"> <label for="NE">Nebraska</label><br />
+            <input id="NM" type="checkbox"> <label for="NM">New Mexico</label><br />
+            <input id="OK" type="checkbox"> <label for="OK">Oklahoma</label><br />
+            <input id="RI" type="checkbox"> <label for="RI">Rhode Island</label><br />
+            <input id="TN" type="checkbox"> <label for="TN">Tennessee</label><br />
         </div>
-        <div style="width: 100%; height: 90vh;">
-            <canvas id="sample-stock"></canvas>
+        <div style="width: 100%;">
+            <div id="totals-div" style="width: 100%; height: 90vh; margin-bottom: 20px;">
+                <canvas id="sample-totals"></canvas>
+            </div>
+            <div id="stock-div" style="width: 100%; height: 90vh;">
+                <canvas id="sample-stock"></canvas>
+            </div>
         </div>
         <script src="graph.js"></script>
     </body>
