@@ -22,7 +22,7 @@ const stateCodeToName = {
     MD: "Maryland",
     MA: "Massachusetts",
     MI: "Michigan",
-    MN: "Minnisota",
+    MN: "Minnesota",
     MS: "Mississippi",
     MO: "Missouri",
     MT: "Montana",
@@ -52,25 +52,20 @@ const stateCodeToName = {
     WY: "Wyoming"
 };
 
-let selected = {
-    CA: true,
-    DE: false,
-    HI: false,
-    MI: true,
-    MT: false,
-    NE: false,
-    NM: true,
-    OK: false,
-    RI: false,
-    TN: false
-};
+let totalSelectedItems = [
+    { borderColor: "rgb(54, 162, 235)", backgroundColor: "rgba(54, 162, 235, 0.5)", active: true },
+    { borderColor: "rgb(255, 99, 132)", backgroundColor: "rgba(255, 99, 132, 0.5)", active: true },
+    { borderColor: "rgb(255, 159, 64)", backgroundColor: "rgba(255, 159, 64, 0.5)", active: true },
+    { borderColor: "rgb(75, 192, 192)", backgroundColor: "rgba(75, 192, 192, 0.5)", active: true },
+    { borderColor: "rgb(153, 102, 255)", backgroundColor: "rgba(153, 102, 255, 0.5)", active: true },
+];
 
-let _colors = [
-    { color: "rgb(54, 162, 235)", background: "rgba(54, 162, 235, 0.5)", active: false },
-    { color: "rgb(255, 99, 132)", background: "rgba(255, 99, 132, 0.5)", active: false },
-    { color: "rgb(255, 159, 64)", background: "rgba(255, 159, 64, 0.5)", active: false },
-    { color: "rgb(75, 192, 192)", background: "rgba(75, 192, 192, 0.5)", active: false },
-    { color: "rgb(153, 102, 255)", background: "rgba(153, 102, 255, 0.5)", active: false },
+let stockSelectedItems = [
+    { borderColor: "rgb(54, 162, 235)", backgroundColor: "rgba(54, 162, 235, 0.5)", active: true },
+    { borderColor: "rgb(255, 99, 132)", backgroundColor: "rgba(255, 99, 132, 0.5)", active: true },
+    { borderColor: "rgb(255, 159, 64)", backgroundColor: "rgba(255, 159, 64, 0.5)", active: true },
+    { borderColor: "rgb(75, 192, 192)", backgroundColor: "rgba(75, 192, 192, 0.5)", active: true },
+    { borderColor: "rgb(153, 102, 255)", backgroundColor: "rgba(153, 102, 255, 0.5)", active: true },
 ];
 
 const ctxTotal = document.getElementById("sample-totals");
@@ -96,32 +91,35 @@ function getQuarter(value) {
 }
 
 function onChangeSelection(e) {
-    let id = e.target.getAttribute("id");
-    selected[id] = !selected[id];
+    let key = e.target.getAttribute("id");
+    
+    if (e.target.checked) {
+        let index = totalSelectedItems.findIndex(d => !d.active);
+        if (index === -1) {
+            e.target.checked = false;
+            alert("A maximum of 5 states may be selected.");
+        } else {
+            totalSelectedItems[index] = Object.assign(totalSelectedItems[index], totalData.find(d => d.key === key));
+            totalSelectedItems[index].active = true;
 
-    if (Object.values(selected).filter(v => v).length > 5) {
-        selected[id] = false;
-        e.target.checked = false;
-        alert("A maximum of 5 states may be selected at once.");
-    } else
-        updateCharts();
+            stockSelectedItems[index] = Object.assign(stockSelectedItems[index], stockData.find(d => d.key === key));
+            stockSelectedItems[index].active = true;
+        }
+    } else {
+        totalSelectedItems.find(d => d.key === key).active = false;
+        stockSelectedItems.find(d => d.key === key).active = false;
+        }
+
+    updateCharts();
 }
 
 function updateCharts() {
     if (!totalChart) {
-        Object.keys(selected).forEach(key => {
-            if (selected[key]) {
-                let index = totalData.findIndex(d => d.key === key);
-
-                index = stockData.findIndex(d => d.key === key);
-            }
-        });
-
         let totalChartConfig = {    
             type: "line",
             data: {
                 labels: chartLabels,
-                datasets: totalData.filter(d => selected[d.key])
+                datasets: totalSelectedItems.filter(d => d.active)
             }
         }
 
@@ -129,48 +127,25 @@ function updateCharts() {
             type: "line",
             data: {
                 labels: chartLabels,
-                datasets: stockData.filter(d => selected[d.key])
+                datasets: stockSelectedItems.filter(d => d.active)
             }
         }
 
         totalChart = new Chart(ctxTotal, totalChartConfig);
         stockChart = new Chart(ctxStock, stockChartConfig);
     } else {
-        Object.keys(selected).forEach(key => {
-            if (selected[key]) {
-                if (!totalChart.data.datasets.find(d => d.key === key)) {
-                    let data = totalData.find(d => d.key === key);
-                    totalChart.data.datasets.push(data)
-                }
-
-                if (!stockChart.data.datasets.find(d => d.key === key)) {
-                    let data = stockData.find(d => d.key === key);
-                    stockChart.data.datasets.push(data);
-                }
-            } else {
-                let index = totalChart.data.datasets.findIndex(d => d.key === key);
-                if (index !== -1) {
-                    totalChart.data.datasets.splice(index, 1);
-                }
-
-                index = stockChart.data.datasets.findIndex(d => d.key === key);
-                if (index !== -1) {
-                    stockChart.data.datasets.splice(index, 1);
-                }
-            }
-        });
+        totalChart.data.datasets = totalSelectedItems.filter(d => d.active);
+        stockChart.data.datasets = stockSelectedItems.filter(d => d.active);
 
         totalChart.update();
         stockChart.update();
     }
 }
 
-Object.keys(selected).forEach(key => {
-    let cb = document.getElementById(key);
-    if (selected[key])
-        cb.setAttribute("checked", "");
+document.querySelectorAll("input[type='checkbox']").forEach(cb => {
+    cb.checked = false;
     cb.addEventListener("change", onChangeSelection);
-});
+})
 
 fetch("time_series.json").then(data => data.json()).then(data => {
     let initialize = true;
@@ -209,6 +184,16 @@ fetch("time_series.json").then(data => data.json()).then(data => {
 
     totalData.sort((a, b) => b.sum - a.sum);
     stockData.sort((a, b) => b.sum - a.sum);
+
+    for (let i = 0; i < 5; i++) {
+        let key = totalData[i].key;
+
+        totalSelectedItems[i] = Object.assign(totalSelectedItems[i], totalData[i]);
+        stockSelectedItems[i] = Object.assign(stockSelectedItems[i], stockData.find(d => d.key === key));
+
+        let cb = document.getElementById(key);
+        cb.checked = true;
+    }
 
     updateCharts();
 });
